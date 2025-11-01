@@ -1,0 +1,40 @@
+<?php
+add_action( 'template_redirect', function () {
+
+	if ( isset( $_SERVER['REQUEST_URI'] ) && rtrim( $_SERVER['REQUEST_URI'], '/' ) === '/llms.txt' ) {
+
+		$lines = apply_filters( 'wc_llm_llms_txt_lines', [
+			'# LLM Sitemap and API Discovery',
+			'https://'. $_SERVER['HTTP_HOST'] .'/llm-sitemap.json',
+			'https://'. $_SERVER['HTTP_HOST'] .'/wp-json/llm/v1/products',
+			'https://'. $_SERVER['HTTP_HOST'] .'/wp-json/llm/v1/deltas',
+			'https://'. $_SERVER['HTTP_HOST'] .'/wp-json/llm/v1/faq',
+			'https://'. $_SERVER['HTTP_HOST'] .'/wp-json/llm/v1/delivery',
+
+			'https://'. $_SERVER['HTTP_HOST'] .'/landing',
+			
+			'# Optional: Documentation',
+			'https://'. $_SERVER['HTTP_HOST'] .'/llm-feed/',
+		] );
+
+		$content = implode( "\n", $lines );
+
+		header( 'Content-Type: text/plain; charset=UTF-8' );
+		header( 'Cache-Control: max-age=3600' );
+		echo $content;
+		exit;
+	}
+} );
+
+/*
+Não esquecer de liberar o acesso no robot.txt
+User-agent: *
+# Permissões gerais para LLMs
+Allow: /llms.txt
+Allow: /llm-sitemap.json
+Allow: /wp-json/llm/v1/products
+Allow: /wp-json/llm/v1/deltas
+Allow: /wp-json/llm/v1/faq
+Allow: /wp-json/llm/v1/delivery
+Allow: /landing
+*/
