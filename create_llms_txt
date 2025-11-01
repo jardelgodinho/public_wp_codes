@@ -10,7 +10,6 @@ add_action( 'template_redirect', function () {
 			'https://'. $_SERVER['HTTP_HOST'] .'/wp-json/llm/v1/deltas',
 			'https://'. $_SERVER['HTTP_HOST'] .'/wp-json/llm/v1/faq',
 			'https://'. $_SERVER['HTTP_HOST'] .'/wp-json/llm/v1/delivery',
-
 			'https://'. $_SERVER['HTTP_HOST'] .'/landing',
 			
 			'# Optional: Documentation',
