@@ -1,0 +1,52 @@
+name: Release subproject
+on:
+  push:
+    tags:
+      - 'plugin-*-v*'    # ex.: plugin-wp-codesync-v1.2.0
+      - 'snippets-*-v*'  # ex.: snippets-create_llms_txt-v0.3.0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Parse tag
+        id: parse
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          KIND="${TAG%%-*}"              # plugin | snippets
+          REST="${TAG#*-}"               # <slug>-vX.Y.Z
+          SLUG="${REST%%-v*}"            # <slug>
+          VERSION="v${REST#*-v}"         # vX.Y.Z
+          echo "kind=${KIND}" >> $GITHUB_OUTPUT
+          echo "slug=${SLUG}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Build path
+        id: path
+        run: |
+          if [ "${{ steps.parse.outputs.kind }}" = "plugin" ]; then
+            echo "subdir=plugins/${{ steps.parse.outputs.slug }}" >> $GITHUB_OUTPUT
+          else
+            echo "subdir=snippets/${{ steps.parse.outputs.slug }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Prepare dist
+        run: |
+          mkdir -p dist
+          SUBDIR="${{ steps.path.outputs.subdir }}"
+          test -d "$SUBDIR" || { echo "Subproject not found: $SUBDIR"; exit 1; }
+          cd "$(dirname "$SUBDIR")"
+          zip -r "../../dist/${{ steps.parse.outputs.slug }}-${{ steps.parse.outputs.version }}.zip" "$(basename "$SUBDIR")" \
+            -x "*/.git/*" "*/node_modules/*" "*/.github/*"
+
+      - name: Create Release (append)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: dist/*.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
