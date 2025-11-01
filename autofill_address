@@ -1,0 +1,34 @@
+<?php
+function custom_autofill_address_script() {
+    if (is_checkout()) {
+        ?>
+        <script type="text/javascript">
+            jQuery(document).ready(function($) {
+                $('#billing_postcode').on('blur', function() {
+                    var cep = $(this).val().replace(/\D/g, '');
+
+                    if (cep.length === 8) {
+                        $.getJSON('https://viacep.com.br/ws/' + cep + '/json/', function(data) {
+                            if (!("erro" in data)) {
+                                $('#billing_address_1').val(data.logradouro);
+                                $('#billing_neighborhood').val(data.bairro);
+                                $('#billing_city').val(data.localidade);
+                            }
+                        });
+                    }
+                });
+            });
+        </script>
+		<style>
+			#billing_state_field {
+				display: none !important;
+			}
+			#billing_country_field {
+				display: none !important;
+			}
+		</style>
+        <?php
+    }
+}
+add_action('wp_footer', 'custom_autofill_address_script');
+?>
